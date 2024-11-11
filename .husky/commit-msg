@@ -36,12 +36,14 @@ if [ "$BRANCH_NAME" = "main" ] || [ "$BRANCH_NAME" = "develop" ]; then
     exit 1
 fi
 
-# Verifica se o ID da issue está presente na mensagem de commit
-echo_color "$BBlue" "Verificando se a mensagem de commit contém o ID da issue..."
+# Adiciona o ID da issue ao início da mensagem de commit, se ainda não estiver presente
+echo_color "$BBlue" "Inserindo o ID da issue na mensagem de commit..."
 if echo "$COMMIT_MESSAGE" | grep -q "$ISSUE_ID"; then
-    echo_color "$BGreen" "Mensagem de commit válida."
-    exit 0
+    echo_color "$BGreen" "A mensagem de commit já contém o ID da issue."
 else
-    echo_color "$BRed" "Erro: A mensagem de commit deve conter o ID da issue '$ISSUE_ID'."
-    exit 1
+    echo "$ISSUE_ID: $COMMIT_MESSAGE" > "$1"
+    echo_color "$BGreen" "ID da issue '$ISSUE_ID' adicionado automaticamente à mensagem de commit."
 fi
+
+# Finaliza com sucesso
+exit 0
