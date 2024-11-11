@@ -1,33 +1,47 @@
 #!/bin/sh
 
 # Cores
-NC='\033[0m'
-BBlue='\033[1;34m'
-BRed='\033[1;31m'
+NC='\033[0m'           # Resetar cor
+BBlue='\033[1;34m'     # Azul
+BRed='\033[1;31m'      # Vermelho
+BGreen='\033[1;32m'    # Verde
 
+# Expressão regular para identificar ID da issue (exemplo: ABC-123)
 REGEX_ISSUE_ID="[a-zA-Z0-9,.\_\-]+-[0-9]+"
 
+# Obtém o nome da branch atual
 BRANCH_NAME=$(git symbolic-ref --short HEAD)
 
+# Extrai o ID da issue do nome da branch usando o regex
 ISSUE_ID=$(echo "$BRANCH_NAME" | grep -o -E "$REGEX_ISSUE_ID")
 
+# Mensagem de commit fornecida como primeiro argumento
 COMMIT_MESSAGE=$(cat "$1")
 
-if [ -z "$ISSUE_ID" ]; then
-    echo -e "${BRed}Branch não está no padrão que deveria mestre... ${NC}"
-    exit 1
-fi
-
+# Função para exibir mensagens coloridas
 echo_color() {
     printf "%b\n" "$1$2${NC}"
 }
 
+# Verifica se o nome da branch segue o padrão esperado
 echo_color "$BBlue" "Verificando o nome da branch..."
-if [ "$BRANCH_NAME" = "main" ] || [ "$BRANCH_NAME" = "develop" ]; then
-    echo_color "$BRed" "Não é permitido commitar diretamente na branch '$BRANCH_NAME'."
+if [ -z "$ISSUE_ID" ]; then
+    echo_color "$BRed" "Erro: Branch não está no padrão esperado. Inclua o ID da issue (ex: ABC-123) no nome da branch."
     exit 1
 fi
 
-if [[ $COMMIT_MESSAGE == *$ISSUE_ID* ]]; then
+# Verifica se o commit está sendo feito diretamente nas branches protegidas
+if [ "$BRANCH_NAME" = "main" ] || [ "$BRANCH_NAME" = "develop" ]; then
+    echo_color "$BRed" "Erro: Não é permitido commitar diretamente na branch '$BRANCH_NAME'."
+    exit 1
+fi
+
+# Verifica se o ID da issue está presente na mensagem de commit
+echo_color "$BBlue" "Verificando se a mensagem de commit contém o ID da issue..."
+if echo "$COMMIT_MESSAGE" | grep -q "$ISSUE_ID"; then
+    echo_color "$BGreen" "Mensagem de commit válida."
     exit 0
+else
+    echo_color "$BRed" "Erro: A mensagem de commit deve conter o ID da issue '$ISSUE_ID'."
+    exit 1
 fi
