@@ -36,6 +36,8 @@ if [ "$BRANCH_NAME" = "main" ] || [ "$BRANCH_NAME" = "develop" ]; then
     exit 1
 fi
 
+
+
 # Adiciona o ID da issue ao início da mensagem de commit, se ainda não estiver presente
 echo_color "$BBlue" "Inserindo o ID da issue na mensagem de commit..."
 if echo "$COMMIT_MESSAGE" | grep -q "$ISSUE_ID"; then
